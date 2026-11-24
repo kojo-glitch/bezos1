@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bezos Academia - AI PDF Summarizer, Notes & Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f6f7ff;color:#0f172a}
+header{background:white;position:sticky;top:0;z-index:10;border-bottom:1px solid #eef0ff;display:flex;justify-content:space-between;align-items:center;padding:14px 20px}
+.logo{font-weight:800;font-size:20px} .logo span{color:#6d28d9}
+.badge{background:#ede9fe;color:#6d28d9;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700}
+.hero{max-width:1100px;margin:0 auto;padding:28px 18px 10px;text-align:center}
+.hero h1{font-size:34px;line-height:1.1;letter-spacing:-1px}
+.hero h1 i{color:#6d28d9;font-style:normal}
+.hero p{color:#64748b;margin:14px auto;max-width:680px;line-height:1.6}
+.stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.stat{background:white;border:1px solid #eef0ff;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:600}
+.main{max-width:1100px;margin:10px auto;padding:0 16px 40px}
+.upload{background:white;border:2px dashed #c4b5fd;border-radius:22px;padding:28px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.04)}
+.upload h3{font-size:19px} .upload p{color:#64748b;font-size:14px;margin:6px 0 14px}
+.btn{background:#6d28d9;color:white;border:none;padding:13px 20px;border-radius:12px;font-weight:700;cursor:pointer;font-size:14px}
+.btn2{background:white;color:#111;border:1px solid #e2e8f0;padding:11px 16px;border-radius:12px;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:.5}
+.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+select{padding:11px 12px;border-radius:12px;border:1px solid #e2e8f0;background:white;font-family:inherit}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.hero h1{font-size:28px}}
+.card{background:white;border:1px solid #eef0ff;border-radius:20px;padding:18px}
+.card h3{font-size:16px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.muted{color:#64748b;font-size:13px;line-height:1.6}
+.box{white-space:pre-wrap;line-height:1.8;font-size:14.5px;background:#fbfbff;border:1px solid #eef0ff;padding:14px;border-radius:14px;max-height:420px;overflow:auto}
+.key{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:#f5f3ff;border:1px solid #ede9fe;color:#4c1d95;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.quizQ{background:#f8fafc;border:1px solid #eef0ff;border-radius:14px;padding:14px;margin-top:12px}
+.quizQ b{font-size:14px;line-height:1.5}
+.opt{display:block;width:100%;text-align:left;background:white;border:1px solid #e2e8f0;padding:11px 12px;border-radius:12px;margin-top:8px;cursor:pointer;font-size:14px}
+.opt:hover{border-color:#6d28d9}
+.opt.correct{background:#dcfce7;border-color:#22c55e}
+.opt.wrong{background:#fee2e2;border-color:#ef4444}
+.progress{height:8px;background:#eef0ff;border-radius:999px;overflow:hidden;margin:12px 0}
+.bar{height:100%;background:linear-gradient(90deg,#6d28d9,#ec4899);width:0%;transition:.4s}
+.flash{background:#fffbeb;border:1px solid #fde68a;border-radius:14px;padding:12px;margin-top:10px;font-size:14px;line-height:1.6}
+.tabs{display:flex;gap:8px;margin-top:12px}
+.tab{flex:1;padding:12px;border-radius:12px;border:1px solid #e2e8f0;background:white;font-weight:700;cursor:pointer}
+.tab.active{background:#6d28d9;color:white;border-color:#6d28d9}
+.noteSec{margin-top:14px}
+.noteSec h4{background:#f5f3ff;padding:10px 12px;border-radius:10px;font-size:14px;margin:10px 0 6px}
+.noteSec ul{padding-left:18px;line-height:1.7;font-size:14px}
+.noteSec li{margin:6px 0}
+.footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+<header><div class="logo">🎓 Bezos <span>Academia</span></div><div class="badge">✨ AI POWERED • FREE</div></header>
+
+<div class="hero">
+  <h1>Upload PDF. Get <i>Summary</i> + <i>Notes</i> + <i>Quiz</i></h1>
+  <p>Bezos Academia reads your lecture notes, understands the meaning, and turns it into clean summary notes you can study, copy or download — plus exam quiz.</p>
+  <div class="stats"><span class="stat">📄 PDF → Text</span><span class="stat">🧠 AI Summary</span><span class="stat">📒 Summary Notes</span><span class="stat">📝 Auto Quiz</span></div>
+</div>
+
+<div class="main">
+  <div class="upload" id="dropZone">
+    <div style="font-size:42px">📄</div>
+    <h3 id="fileName">Drop your PDF here or click to upload</h3>
+    <p>Lecture slides, notes, textbook chapters, assignments. Best for 1-30 pages.</p>
+    <input type="file" id="fileInput" accept=".pdf" hidden>
+    <button class="btn" onclick="document.getElementById('fileInput').click()">Choose PDF File</button>
+    <p id="status" class="muted" style="margin-top:10px">No file yet</p>
+  </div>
+
+  <div class="controls">
+    <select id="summaryLen"><option value="short">Summary: Short</option><option value="medium" selected>Summary: Detailed</option><option value="long">Summary: Exam Deep Dive</option></select>
+    <select id="quizCount"><option value="5">Quiz: 5 Qs</option><option value="10" selected>Quiz: 10 Qs</option><option value="15">Quiz: 15 Qs</option></select>
+    <select id="noteStyle"><option value="bullet">Notes: Bullet Notes</option><option value="exam">Notes: Exam Notes</option><option value="simple">Notes: Simple English</option></select>
+    <button class="btn" id="generateBtn" disabled>✨ Generate All</button>
+  </div>
+
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <p id="aiStatus" class="muted" style="text-align:center"></p>
+
+  <!-- TABS FOR SUMMARY / NOTES -->
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" id="tabSummary" onclick="showTab('summary')">🧠 AI Summary</button>
+      <button class="tab" id="tabNotes" onclick="showTab('notes')">📒 Summary Notes</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn2" onclick="copyCurrent()">📋 Copy Current</button>
+      <button class="btn2" onclick="downloadNotes()">⬇️ Download Notes (.txt)</button>
+      <button class="btn2" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      <span class="badge" id="wordCount">0 words</span>
+    </div>
+
+    <div id="viewSummary" style="margin-top:12px">
+      <div id="summaryBox" class="box">Upload a PDF and click Generate. Your summary will appear here...</div>
+      <div class="key" id="keywords"></div>
+      <div id="flashcards"></div>
+    </div>
+
+    <div id="viewNotes" style="display:none">
+      <div id="notesBox" class="box">Your clean summary notes will appear here...<br><br>They will be structured like:<br>• Topic 1 - Definition<br>• Key Points<br>• Examples<br>• Exam Tips</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>📝 AI Quiz <span class="badge" id="score">Score: 0 / 0</span></h3>
+      <p class="muted">Tap an answer. Green = Correct, Red = Wrong.</p>
+      <div id="quizBox"><p class="muted" style="margin-top:12px">Your quiz will be generated from the PDF...</p></div>
+      <button class="btn2" style="margin-top:12px;width:100%" onclick="regenerateQuiz()">🔄 New Quiz From Same PDF</button>
+    </div>
+    <div class="card">
+      <h3>💡 How To Study With Bezos Academia</h3>
+      <p class="muted" style="line-height:1.8">
+      <b>1. Read Summary Notes</b> - 5 mins<br>
+      <b>2. Read Full Summary</b> - Understand deeper<br>
+      <b>3. Do Quiz</b> - Test yourself<br>
+      <b>4. Re-read Notes</b> - Only the ones you failed<br><br>
+      <b>Exam Tip:</b> Lecturers ask definitions + examples. Your notes highlight both.
+      </p>
+      <div class="flash"><b>⚡ Quick Recall:</b><br>Close this page. Can you explain the main topic in 1 minute? If not, read notes again.</div>
+    </div>
+  </div>
+</div>
+<div class="footer">Made by Kojo Bezos • Bezos Academia © 2026</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let pdfText="", pdfSentences=[], currentQuiz=[], currentTab='summary';
+const fileInput=document.getElementById('fileInput'), dropZone=document.getElementById('dropZone');
+dropZone.onclick=(e)=>{if(e.target.tagName!=='BUTTON') fileInput.click()};
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.style.background='#f5f3ff'});
+dropZone.addEventListener('drop',e=>{e.preventDefault(); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0])});
+fileInput.onchange=e=>handleFile(e.target.files[0]);
+
+async function handleFile(file){
+  if(!file || !file.name.toLowerCase().endsWith('.pdf')){alert('Please upload a PDF');return}
+  document.getElementById('fileName').innerText='📄 '+file.name;
+  document.getElementById('status').innerText='Reading PDF...';
+  document.getElementById('bar').style.width='30%';
+  try{
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    let full="";
+    for(let i=1;i<=Math.min(pdf.numPages,30);i++){
+      const page=await pdf.getPage(i);
+      const tc=await page.getTextContent();
+      full+=tc.items.map(it=>it.str).join(' ')+"\n";
+      document.getElementById('bar').style.width=(30+(i/pdf.numPages)*40)+'%';
+    }
+    pdfText=full.replace(/\s+/g,' ').trim();
+    pdfSentences=(pdfText.match(/[^.!?]+[.!?]+/g)||[pdfText]).map(s=>s.trim()).filter(s=>s.length>40 && s.length<350);
+    document.getElementById('status').innerText=`✅ Loaded ${pdf.numPages} pages • ${pdfText.split(' ').length} words`;
+    document.getElementById('generateBtn').disabled=false;
+    document.getElementById('bar').style.width='100%';
+  }catch(err){alert('Could not read PDF. Try another.')}
+}
+function showTab(t){
+  currentTab=t;
+  document.getElementById('viewSummary').style.display=t==='summary'?'block':'none';
+  document.getElementById('viewNotes').style.display=t==='notes'?'block':'none';
+  document.getElementById('tabSummary').classList.toggle('active',t==='summary');
+  document.getElementById('tabNotes').classList.toggle('active',t==='notes');
+}
+document.getElementById('generateBtn').onclick=()=>{
+  if(!pdfText){alert('Upload PDF first');return}
+  document.getElementById('aiStatus').innerText='🤖 Bezos AI is reading, summarizing, making notes & quiz...';
+  document.getElementById('bar').style.width='10%';
+  setTimeout(()=>{generateSummary(); generateNotes(); generateQuiz(); document.getElementById('aiStatus').innerText='✅ Done! Summary + Notes + Quiz ready!'; document.getElementById('bar').style.width='100%'; showTab('notes');},600);
+};
+function scoreSentence(s){
+  let score=0; const keys=['is','means','defined','refers','important','because','therefore','example','type','function','purpose','result','causes','includes','consists','process','characteristics','advantages','disadvantages'];
+  keys.forEach(k=>{if(s.toLowerCase().includes(k)) score++});
+  if(s.length>80 && s.length<250) score+=2;
+  return score;
+}
+function getTop(n){ return [...pdfSentences].sort((a,b)=>scoreSentence(b)-scoreSentence(a)).slice(0,n); }
+function generateSummary(){
+  const len=document.getElementById('summaryLen').value;
+  let count=len==='short'?5:len==='medium'?9:14;
+  let picked=getTop(count*2).slice(0,count);
+  let summary=`📌 MAIN IDEA:\nThis document is about: ${pdfText.slice(0,120)}...\n\n✅ KEY POINTS YOU MUST KNOW:\n\n`+picked.map((s,i)=>`${i+1}. ${s}`).join('\n\n')+`\n\n💡 IN SIMPLE WORDS:\nThe PDF explains the main concepts, their definitions, why they matter, and how they work together. Focus on definitions + examples — lecturers love to ask those.\n\n📚 HOW TO STUDY:\n- Read points 2 times\n- Cover and recall\n- Do quiz below`;
+  document.getElementById('summaryBox').innerText=summary;
+  document.getElementById('wordCount').innerText=pdfText.split(' ').length+' words';
+  const words=pdfText.toLowerCase().replace(/[^a-z ]/g,' ').split(' ').filter(w=>w.length>5);
+  const freq={}; words.forEach(w=>freq[w]=(freq[w]||0)+1);
+  const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8).map(e=>e[0]);
+  document.getElementById('keywords').innerHTML=top.map(k=>`<span class="chip"># ${k}</span>`).join('');
+  document.getElementById('flashcards').innerHTML=`<div class="flash"><b>⚡ Quick Recall:</b> What is the main topic? What are 3 key definitions? Explain in 1 min without looking.</div>`;
+}
+function generateNotes(){
+  let style=document.getElementById('noteStyle').value;
+  let top=getTop(18);
+  let defs=top.filter(s=>/is |means|defined|refers/i.test(s)).slice(0,5);
+  let examples=top.filter(s=>/example|e\.g|such as|for instance/i.test(s)).slice(0,3);
+  let others=top.slice(0,10);
+  let intro = style==='simple' ? 'Written in very simple English so you understand fast.' : style==='exam' ? 'Written for EXAMS - definitions, key points & likely questions.' : 'Clean bullet notes for fast revision.';
+  let notes = `📒 BEZOS ACADEMIA - SUMMARY NOTES\nFile: ${document.getElementById('fileName').innerText}\nStyle: ${intro}\n\n━━━━━━━━━━━━━━━━━━━━\n🎯 TOPIC OVERVIEW\n━━━━━━━━━━━━━━━━━━━━\n• ${pdfText.slice(0,200)}...\n• This topic is important because it explains the core ideas, definitions and how things work.\n\n━━━━━━━━━━━━━━━━━━━━\n📖 KEY DEFINITIONS (LEARN THESE!)\n━━━━━━━━━━━━━━━━━━━━\n` + (defs.length? defs.map(d=>`• ${d}`).join('\n') : `• ${others[0]}\n• ${others[1]}`) + `\n\n━━━━━━━━━━━━━━━━━━━━\n⭐ KEY POINTS\n━━━━━━━━━━━━━━━━━━━━\n` + others.map(s=>`• ${s}`).join('\n') + `\n\n━━━━━━━━━━━━━━━━━━━━\n💡 EXAMPLES\n━━━━━━━━━━━━━━━━━━━━\n` + (examples.length? examples.map(e=>`• ${e}`).join('\n') : `• Think of a real-life example for each key point above - lecturers ask for examples.`) + `\n\n━━━━━━━━━━━━━━━━━━━━\n📝 EXAM TIPS - LIKELY QUESTIONS\n━━━━━━━━━━━━━━━━━━━━\n• Define: ${defs[0]? defs[0].split(' ').slice(0,8).join(' ')+'...' : 'the main term'}\n• Explain the types / functions / process mentioned in the PDF\n• Give 3 examples and explain why they matter\n• Compare & Contrast: What is the difference between two concepts in this PDF?\n• Why is this topic important in real life?\n\n━━━━━━━━━━━━━━━━━━━━\n✅ ONE-MINUTE REVISION\n━━━━━━━━━━━━━━━━━━━━\n• What is the main topic? → ${pdfText.slice(0,80)}...\n• What are 3 definitions? → See above\n• What are 3 examples? → See above\n• Can you explain it to a friend without looking? If yes, you are ready!\n\nMade by Bezos Academia - Study Smarter`;
+  document.getElementById('notesBox').innerText=notes;
+}
+function generateQuiz(){
+  let count=parseInt(document.getElementById('quizCount').value);
+  let pool=getTop(30); currentQuiz=[]; let used=new Set();
+  for(let i=0;i<count && pool.length;i++){
+    let s=pool[Math.floor(Math.random()*pool.length)]; if(used.has(s)) continue; used.add(s);
+    let words=s.split(' ').filter(w=>w.length>5 && /^[A-Za-z]+/.test(w)); if(words.length<3) continue;
+    let answer=words[Math.floor(Math.random()*words.length)].replace(/[^A-Za-z]/g,'');
+    let question=s.replace(answer,'_____');
+    let distractors=[]; let tries=0; let allWords=pdfText.split(' ');
+    while(distractors.length<3 && tries<50){tries++; let rw=allWords[Math.floor(Math.random()*allWords.length)].replace(/[^A-Za-z]/g,''); if(rw && rw.toLowerCase()!==answer.toLowerCase() && !distractors.includes(rw) && rw.length>4) distractors.push(rw)}
+    let options=[answer,...distractors].sort(()=>Math.random()-.5);
+    currentQuiz.push({q:question, answer, options});
+  }
+  renderQuiz();
+}
+function regenerateQuiz(){ if(!pdfText){alert('Upload PDF first');return} generateQuiz(); }
+function renderQuiz(){
+  let box=document.getElementById('quizBox'); box.innerHTML='';
+  currentQuiz.forEach((item,idx)=>{
+    let div=document.createElement('div'); div.className='quizQ';
+    div.innerHTML=`<b>Q${idx+1}. ${item.q}</b>`;
+    item.options.forEach(opt=>{
+      let b=document.createElement('button'); b.className='opt'; b.innerText=opt;
+      b.onclick=()=>{ let all=div.querySelectorAll('.opt'); all.forEach(x=>x.disabled=true); if(opt===item.answer){b.classList.add('correct'); updateScore()} else {b.classList.add('wrong'); all.forEach(x=>{if(x.innerText===item.answer) x.classList.add('correct')})} };
+      div.appendChild(b);
+    });
+    box.appendChild(div);
+  });
+  updateScore(true);
+}
+let correct=0;
+function updateScore(reset=false){ if(reset) correct=0; else correct++; document.getElementById('score').innerText=`Score: ${correct} / ${currentQuiz.length}`; }
+function copyCurrent(){ let txt=currentTab==='summary'? document.getElementById('summaryBox').innerText : document.getElementById('notesBox').innerText; navigator.clipboard.writeText(txt); alert('Copied!'); }
+function downloadNotes(){
+  let txt=document.getElementById('notesBox').innerText;
+  let blob=new Blob([txt],{type:'text/plain'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Bezos-Academia-Summary-Notes.txt'; a.click();
+}
+</script>
+</body>
+</html>
